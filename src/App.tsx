@@ -15,7 +15,8 @@ import {
   getMunchCoins,
   getSessionHistory,
   getMonsterStage,
-  speakText
+  speakText,
+  stopSpeech
 } from './utils';
 
 type Screen = 'monster-select' | 'difficulty-select' | 'operation-select' | 'game' | 'results' | 'shop';
@@ -55,6 +56,11 @@ function App() {
     // Welcome message
     speakText("Welcome to Math Monsters! Let's have fun with math!");
   }, []);
+
+  // Stop any ongoing speech whenever the screen changes
+  useEffect(() => {
+    stopSpeech();
+  }, [currentScreen]);
 
   const selectMonster = (monster: Monster) => {
     const updatedMonster = { ...monster, stage: getMonsterStage(getTotalCorrect()) };

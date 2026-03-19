@@ -151,8 +151,16 @@ export const generateOptions = (correctAnswer: number, difficulty: Difficulty): 
   return options.sort(() => Math.random() - 0.5);
 };
 
+export const stopSpeech = () => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+};
+
 export const speakText = (text: string) => {
   if ('speechSynthesis' in window) {
+    // Cancel anything already playing before starting new speech
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.8;
     utterance.pitch = 1.2;

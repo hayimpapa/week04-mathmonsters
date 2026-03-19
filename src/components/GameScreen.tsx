@@ -36,8 +36,15 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   }, [gameState.difficulty, gameState.operations]);
 
   const speakQuestion = (question: Question) => {
-    const text = `What is ${question.num1} ${question.operation} ${question.num2}?`;
-    speakText(text);
+    const opWord: Record<string, string> = {
+      '+': 'plus',
+      '-': 'minus',
+      '−': 'minus',
+      '×': 'times',
+      '÷': 'divided by',
+    };
+    const spoken = opWord[question.operation] ?? question.operation;
+    speakText(`What is ${question.num1} ${spoken} ${question.num2}?`);
   };
 
   const handleAnswerSelect = (answer: number) => {
