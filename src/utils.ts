@@ -157,13 +157,31 @@ export const stopSpeech = () => {
   }
 };
 
-export const speakText = (text: string) => {
+export const speakText = (text: string, onEnd?: () => void) => {
   if ('speechSynthesis' in window) {
     // Cancel anything already playing before starting new speech
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.8;
     utterance.pitch = 1.2;
+    if (onEnd) {
+      // Track whether the utterance was cancelled so we don't advance on cancel
+      let interrupted = false;
+      utterance.onerror = (e) => {
+        if (e.error === 'interrupted') {
+          interrupted = true;
+        } else {
+          // Unexpected error — still advance so the child isn't stuck
+          onEnd();
+        }
+      };
+      utterance.onend = () => {
+        if (!interrupted) onEnd();
+      };
+    }
     window.speechSynthesis.speak(utterance);
+  } else if (onEnd) {
+    // No speech support — show result briefly then advance
+    setTimeout(onEnd, 2000);
   }
 };

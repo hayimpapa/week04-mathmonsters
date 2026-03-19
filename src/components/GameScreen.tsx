@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameState, Question } from '../types';
 import { generateQuestion, generateOptions, speakText, incrementTotalCorrect, addMunchCoins } from '../utils';
 
@@ -15,6 +15,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
+  // Guard against calling state setters after the component unmounts
+  const isMounted = useRef(true);
+  useEffect(() => () => { isMounted.current = false; }, []);
 
   useEffect(() => {
     // Generate 10 questions
@@ -60,23 +63,26 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
       setScore(prev => prev + 1);
       incrementTotalCorrect();
       addMunchCoins(10);
-      speakText("Correct! Great job!");
-    } else {
-      speakText(`Oops! The answer is ${currentQ.answer}`);
     }
 
-    // Move to next question after delay
-    setTimeout(() => {
+    // Advance only after the reaction phrase finishes speaking
+    const nextScore = score + (isCorrect ? 1 : 0);
+    const advance = () => {
+      if (!isMounted.current) return;
       if (currentQuestionIndex < 9) {
         setCurrentQuestionIndex(prev => prev + 1);
         setSelectedAnswer(null);
         setShowResult(false);
         speakQuestion(questions[currentQuestionIndex + 1]);
       } else {
-        // Game complete
-        onComplete(score + (isCorrect ? 1 : 0));
+        onComplete(nextScore);
       }
-    }, 2000);
+    };
+
+    const reactionText = isCorrect
+      ? "Correct! Great job!"
+      : `Oops! The answer is ${currentQ.answer}`;
+    speakText(reactionText, advance);
   };
 
   if (questions.length === 0) {
