@@ -22,7 +22,7 @@ import {
 
 type Screen = 'monster-select' | 'difficulty-select' | 'operation-select' | 'game' | 'results' | 'shop';
 
-const LOGO_URL = 'https://raw.githubusercontent.com/hayimpapa/week00-main-page/main/public/logo.png';
+const LOGO_URL = 'https://raw.githubusercontent.com/hayimpapa/week00-main-page/main/public/w52.png';
 const HOME_URL = 'https://52-app.com';
 
 function App() {
