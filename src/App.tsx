@@ -6,6 +6,7 @@ import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
 import Shop from './components/Shop';
 import SessionHistory from './components/SessionHistory';
+import AboutBuild from './components/AboutBuild';
 import { GameState, Monster, Difficulty, Operation } from './types';
 import { MONSTERS } from './data';
 import {
@@ -21,8 +22,12 @@ import {
 
 type Screen = 'monster-select' | 'difficulty-select' | 'operation-select' | 'game' | 'results' | 'shop';
 
+const LOGO_URL = 'https://raw.githubusercontent.com/hayimpapa/week00-main-page/main/public/logo.png';
+const HOME_URL = 'https://52-app.com';
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('monster-select');
+  const [activeTab, setActiveTab] = useState<'app' | 'about'>('app');
   const [gameState, setGameState] = useState<GameState>({
     selectedMonster: null,
     difficulty: 'easy',
@@ -140,15 +145,45 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <div className="max-w-md mx-auto">
-        <header className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-purple-600 mb-2">Math Monsters</h1>
-          <div className="flex justify-between items-center text-sm">
-            <span>🍪 {gameState.munchCoins} Munch Coins</span>
-            <SessionHistory history={gameState.sessionHistory} />
+        <header className="mb-6">
+          {/* Top row: home logo | title | about toggle */}
+          <div className="flex items-center justify-between mb-2">
+            <a
+              href={HOME_URL}
+              aria-label="Back to all apps"
+              className="flex-shrink-0"
+            >
+              <img
+                src={LOGO_URL}
+                alt="Home"
+                className="w-10 h-10 rounded-lg object-contain"
+              />
+            </a>
+
+            <h1 className="text-3xl font-bold text-purple-600">Math Monsters</h1>
+
+            <button
+              onClick={() => {
+                stopSpeech();
+                setActiveTab(t => t === 'about' ? 'app' : 'about');
+              }}
+              aria-label={activeTab === 'about' ? 'Back to game' : 'About this build'}
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow text-lg hover:bg-purple-50 transition-colors"
+            >
+              {activeTab === 'about' ? '✕' : 'ℹ️'}
+            </button>
           </div>
+
+          {/* Second row: coins + session history — hidden on About tab */}
+          {activeTab === 'app' && (
+            <div className="flex justify-between items-center text-sm">
+              <span>🍪 {gameState.munchCoins} Munch Coins</span>
+              <SessionHistory history={gameState.sessionHistory} />
+            </div>
+          )}
         </header>
 
-        {renderScreen()}
+        {activeTab === 'about' ? <AboutBuild /> : renderScreen()}
       </div>
     </div>
   );
