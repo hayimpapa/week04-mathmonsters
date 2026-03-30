@@ -6,6 +6,20 @@ export const STORAGE_KEYS = {
   MUNICH_COINS: 'mathMonsters_munchCoins',
   OWNED_ITEMS: 'mathMonsters_ownedItems',
   SESSION_HISTORY: 'mathMonsters_sessionHistory',
+  SOUND_ENABLED: 'mathMonsters_soundEnabled',
+};
+
+export const isSoundEnabled = (): boolean => {
+  const stored = localStorage.getItem(STORAGE_KEYS.SOUND_ENABLED);
+  // Sound is on by default
+  return stored === null ? true : stored === 'true';
+};
+
+export const setSoundEnabled = (enabled: boolean) => {
+  localStorage.setItem(STORAGE_KEYS.SOUND_ENABLED, String(enabled));
+  if (!enabled) {
+    stopSpeech();
+  }
 };
 
 export const getStoredMonster = (): Monster | null => {
@@ -158,6 +172,15 @@ export const stopSpeech = () => {
 };
 
 export const speakText = (text: string, onEnd?: () => void) => {
+  // When sound is off, skip speech entirely and advance quickly
+  if (!isSoundEnabled()) {
+    if (onEnd) {
+      // Brief delay so the child can see correct/wrong feedback before advancing
+      setTimeout(onEnd, 400);
+    }
+    return;
+  }
+
   if ('speechSynthesis' in window) {
     // Cancel anything already playing before starting new speech
     window.speechSynthesis.cancel();
