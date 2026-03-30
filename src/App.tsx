@@ -102,16 +102,25 @@ function App() {
   };
 
   const handleGameComplete = (finalScore: number) => {
-    setGameState(prev => ({ ...prev, score: finalScore }));
+    // Refresh coins from localStorage since GameScreen added coins directly
+    setGameState(prev => ({ ...prev, score: finalScore, munchCoins: getMunchCoins() }));
     setCurrentScreen('results');
   };
 
   const handleResultsContinue = () => {
+    // Refresh session history after it was saved in ResultsScreen
+    setGameState(prev => ({ ...prev, sessionHistory: getSessionHistory() }));
     setCurrentScreen('shop');
   };
 
   const handleShopContinue = () => {
+    // Refresh coins from localStorage after shopping
+    setGameState(prev => ({ ...prev, munchCoins: getMunchCoins() }));
     setCurrentScreen('monster-select');
+  };
+
+  const handleOpenShop = () => {
+    setCurrentScreen('shop');
   };
 
   const renderScreen = () => {
@@ -122,6 +131,7 @@ function App() {
             monsters={MONSTERS.map(m => ({ ...m, stage: getMonsterStage(getTotalCorrect()) }))}
             onSelect={selectMonster}
             selectedMonster={gameState.selectedMonster}
+            onShopClick={handleOpenShop}
           />
         );
       case 'difficulty-select':

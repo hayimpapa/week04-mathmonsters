@@ -8,47 +8,55 @@ interface MonsterProps {
   ownedItems?: string[];
 }
 
+const HATS: Record<string, string> = {
+  'crown': '👑',
+  'party-hat': '🥳',
+  'wizard-hat': '🧙',
+  'pirate-hat': '🏴‍☠️',
+};
+
+const ACCESSORIES: Record<string, string> = {
+  'glasses': '🕶️',
+  'bowtie': '🎀',
+  'mustache': '🥸',
+  'scarf': '🧣',
+};
+
+const COLOR_EFFECTS: Record<string, string> = {
+  'rainbow': 'rainbow-bg',
+  'golden': 'golden-bg',
+  'neon': 'neon-bg',
+  'pastel': 'pastel-bg',
+};
+
 const Monster: React.FC<MonsterProps> = ({ monster, isSelected, onClick, ownedItems = [] }) => {
   const getStageSize = (stage: number) => {
     switch (stage) {
-      case 1: return 'w-20 h-20';
-      case 2: return 'w-24 h-24';
-      case 3: return 'w-28 h-28';
-      case 4: return 'w-32 h-32';
-      default: return 'w-20 h-20';
+      case 1: return 'w-24 h-24';
+      case 2: return 'w-28 h-28';
+      case 3: return 'w-32 h-32';
+      case 4: return 'w-36 h-36';
+      default: return 'w-24 h-24';
     }
   };
 
-  const getHat = () => {
-    if (ownedItems.includes('crown')) return '👑';
-    if (ownedItems.includes('party-hat')) return '🎉';
-    if (ownedItems.includes('wizard-hat')) return '🧙';
-    if (ownedItems.includes('pirate-hat')) return '🏴‍☠️';
-    return '';
-  };
+  // Collect all owned hats/accessories
+  const ownedHats = Object.entries(HATS).filter(([id]) => ownedItems.includes(id));
+  const ownedAccessories = Object.entries(ACCESSORIES).filter(([id]) => ownedItems.includes(id));
 
-  const getAccessory = () => {
-    if (ownedItems.includes('glasses')) return '🕶️';
-    if (ownedItems.includes('bowtie')) return '🎀';
-    if (ownedItems.includes('mustache')) return '🧔';
-    if (ownedItems.includes('scarf')) return '🧣';
-    return '';
-  };
+  // Use the last purchased (most recent) item in each category
+  const hat = ownedHats.length > 0 ? ownedHats[ownedHats.length - 1][1] : '';
+  const accessory = ownedAccessories.length > 0 ? ownedAccessories[ownedAccessories.length - 1][1] : '';
 
-  const getColorEffect = () => {
-    if (ownedItems.includes('rainbow')) return 'rainbow-bg';
-    if (ownedItems.includes('golden')) return 'golden-bg';
-    if (ownedItems.includes('neon')) return 'neon-bg';
-    if (ownedItems.includes('pastel')) return 'pastel-bg';
-    return '';
-  };
+  const colorEffect = Object.entries(COLOR_EFFECTS).find(([id]) => ownedItems.includes(id));
+  const colorClass = colorEffect ? colorEffect[1] : '';
 
   return (
     <button
       onClick={onClick}
       className={`relative ${getStageSize(monster.stage)} rounded-full border-4 transition-all duration-200 ${
         isSelected ? 'border-yellow-400 scale-110' : 'border-gray-300 hover:border-gray-400'
-      } ${getColorEffect()}`}
+      } ${colorClass}`}
       style={{ backgroundColor: monster.color }}
     >
       {/* Monster body - simple shape */}
@@ -56,28 +64,28 @@ const Monster: React.FC<MonsterProps> = ({ monster, isSelected, onClick, ownedIt
       <div className="absolute inset-4 rounded-full" style={{ backgroundColor: monster.color }}></div>
 
       {/* Eyes */}
-      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-black rounded-full"></div>
-      <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-black rounded-full"></div>
+      <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-black rounded-full"></div>
+      <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-black rounded-full"></div>
 
       {/* Mouth */}
-      <div className="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 w-4 h-2 border-b-2 border-black rounded-b-full"></div>
+      <div className="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 w-5 h-2 border-b-2 border-black rounded-b-full"></div>
 
-      {/* Hat */}
-      {getHat() && (
-        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-lg">
-          {getHat()}
+      {/* Hat - large and clearly above the monster */}
+      {hat && (
+        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-3xl leading-none drop-shadow-lg">
+          {hat}
         </div>
       )}
 
-      {/* Accessory */}
-      {getAccessory() && (
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-sm">
-          {getAccessory()}
+      {/* Accessory - placed clearly below the monster */}
+      {accessory && (
+        <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-2xl leading-none drop-shadow-lg">
+          {accessory}
         </div>
       )}
 
       {/* Stage indicator */}
-      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-black">
+      <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center text-sm font-bold text-black shadow-md">
         {monster.stage}
       </div>
     </button>
