@@ -171,12 +171,11 @@ export const stopSpeech = () => {
   }
 };
 
-export const speakText = (text: string, onEnd?: () => void) => {
+export const speakText = (text: string, onEnd?: () => void, silentDelay = 400) => {
   // When sound is off, skip speech entirely and advance quickly
   if (!isSoundEnabled()) {
     if (onEnd) {
-      // Brief delay so the child can see correct/wrong feedback before advancing
-      setTimeout(onEnd, 400);
+      setTimeout(onEnd, silentDelay);
     }
     return;
   }
