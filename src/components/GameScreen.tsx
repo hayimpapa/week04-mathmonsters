@@ -82,7 +82,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
     const reactionText = isCorrect
       ? "Correct! Great job!"
       : `Oops! The answer is ${currentQ.answer}`;
-    speakText(reactionText, advance);
+    // When sound is off, show wrong answers longer so the child can see the correct answer
+    speakText(reactionText, advance, isCorrect ? 400 : 1200);
   };
 
   if (questions.length === 0) {
