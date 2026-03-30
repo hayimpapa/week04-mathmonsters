@@ -17,7 +17,9 @@ import {
   getSessionHistory,
   getMonsterStage,
   speakText,
-  stopSpeech
+  stopSpeech,
+  isSoundEnabled,
+  setSoundEnabled
 } from './utils';
 
 type Screen = 'monster-select' | 'difficulty-select' | 'operation-select' | 'game' | 'results' | 'shop';
@@ -28,6 +30,13 @@ const HOME_URL = 'https://52-app.com';
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('monster-select');
   const [activeTab, setActiveTab] = useState<'app' | 'about'>('app');
+  const [soundOn, setSoundOn] = useState(isSoundEnabled);
+
+  const toggleSound = () => {
+    const newValue = !soundOn;
+    setSoundOn(newValue);
+    setSoundEnabled(newValue);
+  };
   const [gameState, setGameState] = useState<GameState>({
     selectedMonster: null,
     difficulty: 'easy',
@@ -162,16 +171,29 @@ function App() {
 
             <h1 className="text-3xl font-bold text-purple-600">Math Monsters</h1>
 
-            <button
-              onClick={() => {
-                stopSpeech();
-                setActiveTab(t => t === 'about' ? 'app' : 'about');
-              }}
-              aria-label={activeTab === 'about' ? 'Back to game' : 'About this build'}
-              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow text-lg hover:bg-purple-50 transition-colors"
-            >
-              {activeTab === 'about' ? '✕' : 'ℹ️'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleSound}
+                aria-label={soundOn ? 'Turn sound off' : 'Turn sound on'}
+                className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg shadow text-lg transition-colors ${
+                  soundOn
+                    ? 'bg-white hover:bg-purple-50'
+                    : 'bg-gray-200 hover:bg-gray-300'
+                }`}
+              >
+                {soundOn ? '🔊' : '🔇'}
+              </button>
+              <button
+                onClick={() => {
+                  stopSpeech();
+                  setActiveTab(t => t === 'about' ? 'app' : 'about');
+                }}
+                aria-label={activeTab === 'about' ? 'Back to game' : 'About this build'}
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow text-lg hover:bg-purple-50 transition-colors"
+              >
+                {activeTab === 'about' ? '✕' : 'ℹ️'}
+              </button>
+            </div>
           </div>
 
           {/* Second row: coins + session history — hidden on About tab */}
