@@ -1,35 +1,36 @@
 import React from 'react';
 import { Monster as MonsterType } from '../types';
+import { EquippedItems } from '../utils';
 
 interface MonsterProps {
   monster: MonsterType;
   isSelected: boolean;
   onClick: () => void;
-  ownedItems?: string[];
+  equippedItems?: EquippedItems;
 }
 
-const HATS: Record<string, string> = {
+export const HATS: Record<string, string> = {
   'crown': '👑',
   'party-hat': '🥳',
   'wizard-hat': '🧙',
   'pirate-hat': '🏴‍☠️',
 };
 
-const ACCESSORIES: Record<string, string> = {
+export const ACCESSORIES: Record<string, string> = {
   'glasses': '🕶️',
   'bowtie': '🎀',
   'mustache': '🥸',
   'scarf': '🧣',
 };
 
-const COLOR_EFFECTS: Record<string, string> = {
+export const COLOR_EFFECTS: Record<string, string> = {
   'rainbow': 'rainbow-bg',
   'golden': 'golden-bg',
   'neon': 'neon-bg',
   'pastel': 'pastel-bg',
 };
 
-const Monster: React.FC<MonsterProps> = ({ monster, isSelected, onClick, ownedItems = [] }) => {
+const Monster: React.FC<MonsterProps> = ({ monster, isSelected, onClick, equippedItems }) => {
   const getStageSize = (stage: number) => {
     switch (stage) {
       case 1: return 'w-24 h-24';
@@ -40,16 +41,9 @@ const Monster: React.FC<MonsterProps> = ({ monster, isSelected, onClick, ownedIt
     }
   };
 
-  // Collect all owned hats/accessories
-  const ownedHats = Object.entries(HATS).filter(([id]) => ownedItems.includes(id));
-  const ownedAccessories = Object.entries(ACCESSORIES).filter(([id]) => ownedItems.includes(id));
-
-  // Use the last purchased (most recent) item in each category
-  const hat = ownedHats.length > 0 ? ownedHats[ownedHats.length - 1][1] : '';
-  const accessory = ownedAccessories.length > 0 ? ownedAccessories[ownedAccessories.length - 1][1] : '';
-
-  const colorEffect = Object.entries(COLOR_EFFECTS).find(([id]) => ownedItems.includes(id));
-  const colorClass = colorEffect ? colorEffect[1] : '';
+  const hat = equippedItems?.hat ? (HATS[equippedItems.hat] || '') : '';
+  const accessory = equippedItems?.accessory ? (ACCESSORIES[equippedItems.accessory] || '') : '';
+  const colorClass = equippedItems?.color ? (COLOR_EFFECTS[equippedItems.color] || '') : '';
 
   return (
     <button

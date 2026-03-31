@@ -1,7 +1,7 @@
 import React from 'react';
 import Monster from './Monster';
 import { Monster as MonsterType } from '../types';
-import { getOwnedItems } from '../utils';
+import { getEquippedItems } from '../utils';
 
 interface MonsterSelectorProps {
   monsters: MonsterType[];
@@ -11,7 +11,7 @@ interface MonsterSelectorProps {
 }
 
 const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, selectedMonster, onShopClick }) => {
-  const ownedItems = getOwnedItems();
+  const equippedItems = getEquippedItems();
 
   return (
     <div className="text-center">
@@ -25,7 +25,7 @@ const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, s
               monster={monster}
               isSelected={selectedMonster?.id === monster.id}
               onClick={() => onSelect(monster)}
-              ownedItems={ownedItems}
+              equippedItems={equippedItems}
             />
             <h3 className="text-lg font-semibold mt-2 text-gray-800">{monster.name}</h3>
             <p className="text-sm text-gray-600 text-center">{monster.personality}</p>

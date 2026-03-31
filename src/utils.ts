@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   TOTAL_CORRECT: 'mathMonsters_totalCorrect',
   MUNICH_COINS: 'mathMonsters_munchCoins',
   OWNED_ITEMS: 'mathMonsters_ownedItems',
+  EQUIPPED_ITEMS: 'mathMonsters_equippedItems',
   SESSION_HISTORY: 'mathMonsters_sessionHistory',
   SOUND_ENABLED: 'mathMonsters_soundEnabled',
 };
@@ -71,6 +72,19 @@ export const addOwnedItem = (itemId: string) => {
     owned.push(itemId);
     localStorage.setItem(STORAGE_KEYS.OWNED_ITEMS, JSON.stringify(owned));
   }
+};
+
+export type EquippedItems = { hat: string | null; accessory: string | null; color: string | null };
+
+export const getEquippedItems = (): EquippedItems => {
+  const stored = localStorage.getItem(STORAGE_KEYS.EQUIPPED_ITEMS);
+  return stored ? JSON.parse(stored) : { hat: null, accessory: null, color: null };
+};
+
+export const setEquippedItem = (category: 'hat' | 'accessory' | 'color', itemId: string | null) => {
+  const equipped = getEquippedItems();
+  equipped[category] = itemId;
+  localStorage.setItem(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));
 };
 
 export const getSessionHistory = (): number[] => {
