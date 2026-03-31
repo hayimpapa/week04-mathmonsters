@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Monster color effect cosmetics */
+.rainbow-bg {
+  background: linear-gradient(135deg, #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff) !important;
+  animation: rainbow-shift 3s ease infinite;
+  background-size: 400% 400%;
+}
+@keyframes rainbow-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.golden-bg {
+  background: linear-gradient(135deg, #ffd700, #ffec80, #ffd700, #daa520) !important;
+  box-shadow: 0 0 16px 4px rgba(255, 215, 0, 0.5);
+  animation: golden-pulse 2s ease-in-out infinite;
+}
+@keyframes golden-pulse {
+  0%, 100% { box-shadow: 0 0 16px 4px rgba(255, 215, 0, 0.5); }
+  50% { box-shadow: 0 0 24px 8px rgba(255, 215, 0, 0.8); }
+}
+
+.neon-bg {
+  box-shadow: 0 0 12px 4px rgba(0, 255, 128, 0.7), inset 0 0 12px rgba(0, 255, 128, 0.3);
+  animation: neon-flicker 1.5s ease-in-out infinite;
+}
+@keyframes neon-flicker {
+  0%, 100% { box-shadow: 0 0 12px 4px rgba(0, 255, 128, 0.7), inset 0 0 12px rgba(0, 255, 128, 0.3); }
+  50% { box-shadow: 0 0 20px 8px rgba(0, 255, 255, 0.9), inset 0 0 16px rgba(0, 255, 255, 0.4); }
+}
+
+.pastel-bg {
+  background: linear-gradient(135deg, #fbc2eb, #a6c1ee, #c3f0ca, #ffecd2) !important;
+  background-size: 400% 400%;
+  animation: pastel-flow 4s ease infinite;
+}
+@keyframes pastel-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

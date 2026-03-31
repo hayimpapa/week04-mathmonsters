@@ -1,16 +1,17 @@
 import React from 'react';
 import Monster from './Monster';
 import { Monster as MonsterType } from '../types';
-import { getOwnedItems } from '../utils';
+import { getEquippedItems } from '../utils';
 
 interface MonsterSelectorProps {
   monsters: MonsterType[];
   onSelect: (monster: MonsterType) => void;
   selectedMonster: MonsterType | null;
+  onShopClick: () => void;
 }
 
-const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, selectedMonster }) => {
-  const ownedItems = getOwnedItems();
+const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, selectedMonster, onShopClick }) => {
+  const equippedItems = getEquippedItems();
 
   return (
     <div className="text-center">
@@ -24,7 +25,7 @@ const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, s
               monster={monster}
               isSelected={selectedMonster?.id === monster.id}
               onClick={() => onSelect(monster)}
-              ownedItems={ownedItems}
+              equippedItems={equippedItems}
             />
             <h3 className="text-lg font-semibold mt-2 text-gray-800">{monster.name}</h3>
             <p className="text-sm text-gray-600 text-center">{monster.personality}</p>
@@ -32,13 +33,21 @@ const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, s
         ))}
       </div>
 
-      <button
-        onClick={() => selectedMonster && onSelect(selectedMonster)}
-        disabled={!selectedMonster}
-        className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors"
-      >
-        Start Adventure! 🚀
-      </button>
+      <div className="flex flex-col gap-3 items-center">
+        <button
+          onClick={() => selectedMonster && onSelect(selectedMonster)}
+          disabled={!selectedMonster}
+          className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full max-w-xs"
+        >
+          Start Adventure! 🚀
+        </button>
+        <button
+          onClick={onShopClick}
+          className="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full max-w-xs"
+        >
+          Monster Shop 🛍️
+        </button>
+      </div>
     </div>
   );
 };
