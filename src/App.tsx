@@ -81,7 +81,7 @@ function App() {
     setStoredMonster(updatedMonster);
     setGameState(prev => ({ ...prev, selectedMonster: updatedMonster }));
     setCurrentScreen('difficulty-select');
-    speakText(`You chose ${monster.name}! ${monster.personality}`);
+    speakText(`You chose ${monster.name}! ${monster.powerDescription}`);
   };
 
   const selectDifficulty = (difficulty: Difficulty) => {

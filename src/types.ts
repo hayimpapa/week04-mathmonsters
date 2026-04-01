@@ -1,7 +1,11 @@
+export type MonsterPower = 'streak' | 'consistency' | 'endurance' | 'speed';
+
 export type Monster = {
   id: string;
   name: string;
   personality: string;
+  powerType: MonsterPower;
+  powerDescription: string;
   color: string;
   stage: number;
 };
