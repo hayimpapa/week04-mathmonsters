@@ -15,36 +15,68 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
-  // Guard against calling state setters after the component unmounts
+  // Spark: track consecutive correct answers
+  const [streak, setStreak] = useState(0);
+  // Zephyr: countdown display
+  const [timeLeft, setTimeLeft] = useState(5);
+  // Coins earned on the current answer (for result feedback)
+  const [coinsEarned, setCoinsEarned] = useState(0);
+
   const isMounted = useRef(true);
-  useEffect(() => () => { isMounted.current = false; }, []);
+  const questionStartTimeRef = useRef<number>(Date.now());
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => () => {
+    isMounted.current = false;
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+  }, []);
+
+  const monster = gameState.selectedMonster;
+  const monsterPower = monster?.powerType;
 
   useEffect(() => {
-    // Generate 10 questions
     const newQuestions: Question[] = [];
     for (let i = 0; i < 10; i++) {
       const q = generateQuestion(gameState.difficulty, gameState.operations);
       const options = generateOptions(q.answer, gameState.difficulty);
-      newQuestions.push({
-        ...q,
-        options
-      });
+      newQuestions.push({ ...q, options });
     }
     setQuestions(newQuestions);
-
-    // Speak first question
-    if (newQuestions.length > 0) {
-      speakQuestion(newQuestions[0]);
-    }
+    if (newQuestions.length > 0) speakQuestion(newQuestions[0]);
   }, [gameState.difficulty, gameState.operations]);
+
+  // Reset the start timestamp and (for Zephyr) restart the countdown on each new question
+  useEffect(() => {
+    if (questions.length === 0) return;
+    questionStartTimeRef.current = Date.now();
+
+    if (monsterPower === 'speed') {
+      setTimeLeft(5);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      const id = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(id);
+            if (timerIntervalRef.current === id) timerIntervalRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      timerIntervalRef.current = id;
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [currentQuestionIndex, questions.length, monsterPower]);
 
   const speakQuestion = (question: Question) => {
     const opWord: Record<string, string> = {
-      '+': 'plus',
-      '-': 'minus',
-      '−': 'minus',
-      '×': 'times',
-      '÷': 'divided by',
+      '+': 'plus', '-': 'minus', '−': 'minus', '×': 'times', '÷': 'divided by',
     };
     const spoken = opWord[question.operation] ?? question.operation;
     speakText(`What is ${question.num1} ${spoken} ${question.num2}?`);
@@ -53,19 +85,56 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   const handleAnswerSelect = (answer: number) => {
     if (showResult) return;
 
+    // Stop Zephyr's countdown
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     setSelectedAnswer(answer);
     setShowResult(true);
 
     const currentQ = questions[currentQuestionIndex];
     const isCorrect = answer === currentQ.answer;
+    const elapsedMs = Date.now() - questionStartTimeRef.current;
+
+    let coins = 0;
+    let newStreak = streak;
 
     if (isCorrect) {
       setScore(prev => prev + 1);
       incrementTotalCorrect();
-      addMunchCoins(10);
+      newStreak = streak + 1;
+      setStreak(newStreak);
+
+      // Calculate coins based on this monster's power
+      switch (monsterPower) {
+        case 'streak':
+          // Spark: double coins once streak reaches 3+
+          coins = newStreak >= 3 ? 20 : 10;
+          break;
+        case 'endurance':
+          // Terra: double coins on questions 8, 9, 10 (indices 7, 8, 9)
+          coins = currentQuestionIndex >= 7 ? 20 : 10;
+          break;
+        case 'speed':
+          // Zephyr: double coins if answered within 5 seconds
+          coins = elapsedMs <= 5000 ? 20 : 10;
+          break;
+        default:
+          // Aqua (consistency): base 10 coins per answer; bonus awarded at session end
+          coins = 10;
+      }
+      addMunchCoins(coins);
+    } else {
+      // Wrong answer resets Spark's streak
+      newStreak = 0;
+      setStreak(0);
+      coins = 0;
     }
 
-    // Advance only after the reaction phrase finishes speaking
+    setCoinsEarned(coins);
+
     const nextScore = score + (isCorrect ? 1 : 0);
     const advance = () => {
       if (!isMounted.current) return;
@@ -75,14 +144,15 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
         setShowResult(false);
         speakQuestion(questions[currentQuestionIndex + 1]);
       } else {
+        // Aqua: award the 30-coin consistency bonus at session end if 8+ correct
+        if (monsterPower === 'consistency' && nextScore >= 8) {
+          addMunchCoins(30);
+        }
         onComplete(nextScore);
       }
     };
 
-    const reactionText = isCorrect
-      ? "Correct! Great job!"
-      : `Oops! The answer is ${currentQ.answer}`;
-    // When sound is off, show wrong answers longer so the child can see the correct answer
+    const reactionText = isCorrect ? 'Correct! Great job!' : `Oops! The answer is ${currentQ.answer}`;
     speakText(reactionText, advance, isCorrect ? 400 : 1200);
   };
 
@@ -91,7 +161,64 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   }
 
   const currentQ = questions[currentQuestionIndex];
-  const progressPercent = ((currentQuestionIndex) / 10) * 100;
+  const progressPercent = (currentQuestionIndex / 10) * 100;
+  const isPowerQuestion = currentQuestionIndex >= 7; // Terra's last-3 indicator
+
+  // Power status banner shown below the progress bar
+  const renderPowerStatus = () => {
+    switch (monsterPower) {
+      case 'streak':
+        return (
+          <div className={`text-sm font-bold px-3 py-1 rounded-full transition-colors ${
+            streak >= 3
+              ? 'bg-orange-100 text-orange-600'
+              : 'bg-gray-100 text-gray-500'
+          }`}>
+            🔥 Streak: {streak}
+            {streak >= 3 ? ' — DOUBLE COINS!' : streak === 2 ? ' — one more!' : ''}
+          </div>
+        );
+      case 'consistency':
+        return (
+          <div className={`text-sm font-bold px-3 py-1 rounded-full ${
+            score >= 8 ? 'bg-teal-100 text-teal-600' : 'bg-blue-50 text-blue-500'
+          }`}>
+            💧 {score} right so far
+            {score >= 8 ? ' — Bonus unlocked! ✨' : ` — get ${8 - score} more for bonus!`}
+          </div>
+        );
+      case 'endurance':
+        return (
+          <div className={`text-sm font-bold px-3 py-1 rounded-full transition-colors ${
+            isPowerQuestion ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+          }`}>
+            🪨 {isPowerQuestion
+              ? '⚡ POWER QUESTION — double coins!'
+              : `Power questions in ${7 - currentQuestionIndex} more!`}
+          </div>
+        );
+      case 'speed':
+        return (
+          <div className={`text-sm font-bold px-3 py-1 rounded-full transition-colors ${
+            showResult
+              ? 'bg-gray-100 text-gray-400'
+              : timeLeft <= 2
+              ? 'bg-red-100 text-red-600'
+              : timeLeft <= 4
+              ? 'bg-yellow-100 text-yellow-600'
+              : 'bg-teal-100 text-teal-600'
+          }`}>
+            ⚡ {showResult
+              ? 'Next question coming…'
+              : timeLeft > 0
+              ? `${timeLeft}s — answer fast for double coins!`
+              : 'Too slow — no bonus this time!'}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="text-center">
@@ -121,7 +248,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
       )}
 
       {/* Header: progress bar + quit button */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-lg font-semibold text-gray-700">
             Question {currentQuestionIndex + 1} of 10
@@ -137,12 +264,15 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
             </button>
           </div>
         </div>
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2">
           <div
             className="bg-purple-500 h-4 rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
+        </div>
+        {/* Power status banner */}
+        <div className="flex justify-center">
+          {renderPowerStatus()}
         </div>
       </div>
 
@@ -176,7 +306,12 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
       {showResult && (
         <div className="text-xl font-semibold">
           {selectedAnswer === currentQ.answer ? (
-            <span className="text-green-600">✅ Correct! +10 Munch Coins</span>
+            <span className="text-green-600">
+              ✅ Correct!{' '}
+              {coinsEarned > 10
+                ? `+${coinsEarned} Munch Coins 🎉`
+                : `+${coinsEarned} Munch Coins`}
+            </span>
           ) : (
             <span className="text-red-600">❌ The answer was {currentQ.answer}</span>
           )}

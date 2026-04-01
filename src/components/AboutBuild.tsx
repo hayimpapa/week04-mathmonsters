@@ -24,7 +24,7 @@ const AboutBuild: React.FC = () => (
     </Section>
 
     <Section label="The App">
-      <p className="text-gray-700 leading-relaxed">
+      <p className="text-gray-700 leading-relaxed mb-4">
         Math Monsters is a browser-based maths game for children aged 5–10. Players
         choose a monster companion and answer 10 questions per session across three
         difficulty levels: Starter (numbers 1–5), Explorer (1–10), and Champion (1–20).
@@ -33,6 +33,13 @@ const AboutBuild: React.FC = () => (
         read aloud using the Web Speech API. No login or backend is required — all
         progress is stored locally in the browser.
       </p>
+      <p className="text-xs font-bold tracking-widest text-purple-400 uppercase mb-2">Monster Powers</p>
+      <ul className="text-sm text-gray-700 space-y-1">
+        <li>🔥 <strong>Spark</strong> — Get 3 right in a row for double coins (streak resets on a wrong answer)</li>
+        <li>💧 <strong>Aqua</strong> — Score 8 or more out of 10 to earn a 30-coin session bonus</li>
+        <li>🪨 <strong>Terra</strong> — Questions 8, 9 and 10 always pay double coins</li>
+        <li>⚡ <strong>Zephyr</strong> — Answer within 5 seconds for double coins</li>
+      </ul>
     </Section>
 
     <Section label="The Prompt">

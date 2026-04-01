@@ -16,7 +16,7 @@ const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, s
   return (
     <div className="text-center">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Choose Your Monster!</h2>
-      <p className="text-gray-600 mb-6">Each monster has a unique personality to help you learn math.</p>
+      <p className="text-gray-600 mb-6">Each monster has a special power — pick the one that suits you!</p>
 
       <div className="grid grid-cols-2 gap-6 mb-6">
         {monsters.map((monster) => (
@@ -28,7 +28,9 @@ const MonsterSelector: React.FC<MonsterSelectorProps> = ({ monsters, onSelect, s
               equippedItems={equippedItems}
             />
             <h3 className="text-lg font-semibold mt-2 text-gray-800">{monster.name}</h3>
-            <p className="text-sm text-gray-600 text-center">{monster.personality}</p>
+            <p className="text-xs text-center mt-1 font-semibold bg-purple-50 text-purple-700 rounded-lg px-2 py-1">
+              {monster.powerDescription}
+            </p>
           </div>
         ))}
       </div>
