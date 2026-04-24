@@ -36,9 +36,15 @@ const AboutBuild: React.FC = () => (
       <p className="text-xs font-bold tracking-widest text-purple-400 uppercase mb-2">Monster Powers</p>
       <ul className="text-sm text-gray-700 space-y-1">
         <li>🔥 <strong>Spark</strong> — Get 3 right in a row for double coins (streak resets on a wrong answer)</li>
-        <li>💧 <strong>Aqua</strong> — Score 8 or more out of 10 to earn a 30-coin session bonus</li>
+        <li>💧 <strong>Aqua</strong> — Score 8 or more out of 10 to earn a session bonus</li>
         <li>🪨 <strong>Terra</strong> — Questions 8, 9 and 10 always pay double coins</li>
         <li>⚡ <strong>Zephyr</strong> — Answer within 5 seconds for double coins</li>
+      </ul>
+      <p className="text-xs font-bold tracking-widest text-purple-400 uppercase mt-4 mb-2">Economy</p>
+      <ul className="text-sm text-gray-700 space-y-1">
+        <li>🍪 Coins scale with difficulty: Easy 3, Medium 6, Hard 10 per correct answer</li>
+        <li>🔥 Daily streak multiplier: play every day to earn up to 10x coins (resets after day 10)</li>
+        <li>🔒 Shop items unlock as your monster evolves through 4 stages</li>
       </ul>
     </Section>
 

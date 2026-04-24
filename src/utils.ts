@@ -1,4 +1,4 @@
-import { Monster, Difficulty, Operation } from './types';
+import { Monster, Difficulty, Operation, DailyStreak } from './types';
 
 export const STORAGE_KEYS = {
   SELECTED_MONSTER: 'mathMonsters_selectedMonster',
@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   EQUIPPED_ITEMS: 'mathMonsters_equippedItems',
   SESSION_HISTORY: 'mathMonsters_sessionHistory',
   SOUND_ENABLED: 'mathMonsters_soundEnabled',
+  DAILY_STREAK: 'mathMonsters_dailyStreak',
 };
 
 export const isSoundEnabled = (): boolean => {
@@ -177,6 +178,69 @@ export const generateOptions = (correctAnswer: number, difficulty: Difficulty): 
   }
 
   return options.sort(() => Math.random() - 0.5);
+};
+
+// ── Difficulty-based coin scaling ────────────────────────────────────────
+
+export const getBaseCoins = (difficulty: Difficulty): number => {
+  switch (difficulty) {
+    case 'easy': return 3;
+    case 'medium': return 6;
+    case 'hard': return 10;
+  }
+};
+
+// ── Daily streak ────────────────────────────────────────────────────────
+
+const getTodayString = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const getYesterdayString = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+export const getDailyStreak = (): DailyStreak => {
+  const stored = localStorage.getItem(STORAGE_KEYS.DAILY_STREAK);
+  if (!stored) return { lastPlayDate: '', rawStreakDay: 0 };
+  return JSON.parse(stored);
+};
+
+const streakMultiplier = (raw: number): number =>
+  raw <= 0 ? 1 : ((raw - 1) % 10) + 1;
+
+export const getStreakMultiplier = (): number => {
+  const { lastPlayDate, rawStreakDay } = getDailyStreak();
+  const today = getTodayString();
+  const yesterday = getYesterdayString();
+  if (lastPlayDate === today) return streakMultiplier(rawStreakDay);
+  if (lastPlayDate === yesterday) return streakMultiplier(rawStreakDay + 1);
+  return 1;
+};
+
+export const recordPlaySession = (): number => {
+  const today = getTodayString();
+  const yesterday = getYesterdayString();
+  const { lastPlayDate, rawStreakDay } = getDailyStreak();
+
+  let newRaw: number;
+  if (lastPlayDate === today) {
+    newRaw = rawStreakDay;
+  } else if (lastPlayDate === yesterday) {
+    newRaw = rawStreakDay + 1;
+  } else {
+    newRaw = 1;
+  }
+
+  localStorage.setItem(
+    STORAGE_KEYS.DAILY_STREAK,
+    JSON.stringify({ lastPlayDate: today, rawStreakDay: newRaw } satisfies DailyStreak),
+  );
+
+  return streakMultiplier(newRaw);
 };
 
 export const stopSpeech = () => {

@@ -16,6 +16,7 @@ import {
   getMunchCoins,
   getSessionHistory,
   getMonsterStage,
+  getStreakMultiplier,
   speakText,
   stopSpeech,
   isSoundEnabled,
@@ -31,6 +32,7 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('monster-select');
   const [activeTab, setActiveTab] = useState<'app' | 'about'>('app');
   const [soundOn, setSoundOn] = useState(isSoundEnabled);
+  const [streakMultiplier, setStreakMultiplier] = useState(1);
 
   const toggleSound = () => {
     const newValue = !soundOn;
@@ -59,6 +61,8 @@ function App() {
       storedMonster.stage = getMonsterStage(totalCorrect);
       setStoredMonster(storedMonster);
     }
+
+    setStreakMultiplier(getStreakMultiplier());
 
     setGameState(prev => ({
       ...prev,
@@ -102,7 +106,7 @@ function App() {
   };
 
   const handleGameComplete = (finalScore: number) => {
-    // Refresh coins from localStorage since GameScreen added coins directly
+    setStreakMultiplier(getStreakMultiplier());
     setGameState(prev => ({ ...prev, score: finalScore, munchCoins: getMunchCoins() }));
     setCurrentScreen('results');
   };
@@ -206,11 +210,23 @@ function App() {
             </div>
           </div>
 
-          {/* Second row: coins + session history — hidden on About tab */}
+          {/* Second row: coins + streak + session history — hidden on About tab */}
           {activeTab === 'app' && (
-            <div className="flex justify-between items-center text-sm">
-              <span>🍪 {gameState.munchCoins} Munch Coins</span>
-              <SessionHistory history={gameState.sessionHistory} />
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between items-center text-sm">
+                <span>🍪 {gameState.munchCoins} Munch Coins</span>
+                <SessionHistory history={gameState.sessionHistory} />
+              </div>
+              <div className={`text-xs font-bold text-center px-2 py-1 rounded-full ${
+                streakMultiplier >= 5
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : streakMultiplier > 1
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                🔥 Daily Streak: {streakMultiplier}x coin bonus
+                {streakMultiplier >= 10 ? ' — MAX!' : ''}
+              </div>
             </div>
           )}
         </header>

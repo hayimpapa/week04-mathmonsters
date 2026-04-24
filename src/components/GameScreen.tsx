@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GameState, Question } from '../types';
-import { generateQuestion, generateOptions, speakText, incrementTotalCorrect, addMunchCoins } from '../utils';
+import { generateQuestion, generateOptions, speakText, incrementTotalCorrect, addMunchCoins, getBaseCoins, recordPlaySession } from '../utils';
 
 interface GameScreenProps {
   gameState: GameState;
@@ -21,6 +21,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   const [timeLeft, setTimeLeft] = useState(5);
   // Coins earned on the current answer (for result feedback)
   const [coinsEarned, setCoinsEarned] = useState(0);
+  // Daily streak multiplier (1x–10x), locked in at session start
+  const [streakMultiplier, setStreakMultiplier] = useState(1);
 
   const isMounted = useRef(true);
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -35,6 +37,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
   const monsterPower = monster?.powerType;
 
   useEffect(() => {
+    setStreakMultiplier(recordPlaySession());
+
     const newQuestions: Question[] = [];
     for (let i = 0; i < 10; i++) {
       const q = generateQuestion(gameState.difficulty, gameState.operations);
@@ -107,24 +111,20 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
       newStreak = streak + 1;
       setStreak(newStreak);
 
-      // Calculate coins based on this monster's power
+      const base = getBaseCoins(gameState.difficulty);
+      let powerMultiplier = 1;
       switch (monsterPower) {
         case 'streak':
-          // Spark: double coins once streak reaches 3+
-          coins = newStreak >= 3 ? 20 : 10;
+          if (newStreak >= 3) powerMultiplier = 2;
           break;
         case 'endurance':
-          // Terra: double coins on questions 8, 9, 10 (indices 7, 8, 9)
-          coins = currentQuestionIndex >= 7 ? 20 : 10;
+          if (currentQuestionIndex >= 7) powerMultiplier = 2;
           break;
         case 'speed':
-          // Zephyr: double coins if answered within 5 seconds
-          coins = elapsedMs <= 5000 ? 20 : 10;
+          if (elapsedMs <= 5000) powerMultiplier = 2;
           break;
-        default:
-          // Aqua (consistency): base 10 coins per answer; bonus awarded at session end
-          coins = 10;
       }
+      coins = base * powerMultiplier * streakMultiplier;
       addMunchCoins(coins);
     } else {
       // Wrong answer resets Spark's streak
@@ -144,9 +144,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
         setShowResult(false);
         speakQuestion(questions[currentQuestionIndex + 1]);
       } else {
-        // Aqua: award the 30-coin consistency bonus at session end if 8+ correct
         if (monsterPower === 'consistency' && nextScore >= 8) {
-          addMunchCoins(30);
+          addMunchCoins(getBaseCoins(gameState.difficulty) * 3 * streakMultiplier);
         }
         onComplete(nextScore);
       }
@@ -307,10 +306,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, onComplete, onQuit }
         <div className="text-xl font-semibold">
           {selectedAnswer === currentQ.answer ? (
             <span className="text-green-600">
-              ✅ Correct!{' '}
-              {coinsEarned > 10
-                ? `+${coinsEarned} Munch Coins 🎉`
-                : `+${coinsEarned} Munch Coins`}
+              ✅ Correct! +{coinsEarned} Munch Coins
+              {streakMultiplier > 1 ? ` (${streakMultiplier}x streak!)` : ''}
             </span>
           ) : (
             <span className="text-red-600">❌ The answer was {currentQ.answer}</span>
