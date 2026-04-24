@@ -39,4 +39,14 @@ export type ShopItem = {
   type: 'hat' | 'accessory' | 'color';
   emoji: string;
   cost: number;
+  // Minimum monster evolution stage required to purchase. 1 = available immediately.
+  unlockStage?: number;
+};
+
+// Tracks the consecutive-day play streak. The multiplier cycles 1x → 10x → 1x.
+export type DailyStreak = {
+  // ISO date string (YYYY-MM-DD) of the most recent day the user completed a session.
+  lastPlayDate: string;
+  // Raw uncapped streak length. Multiplier is derived as ((rawStreakDay - 1) % 10) + 1.
+  rawStreakDay: number;
 };
